@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missoum E-Services Dz | شريكك الرقمي</title>
+    
+    <!-- Google Fonts: Cairo (Arabic) & Poppins (French/English) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Tailwind Custom Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            navy: '#0A2540',
+                            dark: '#061729',
+                            cyan: '#00A8B5',
+                            lightCyan: '#00C4D4',
+                            surface: '#F8FAFC'
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Typography & Smooth Transitions */
+        body {
+            font-family: 'Cairo', 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #061729 0%, #0A2540 50%, #0d3358 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        html[lang="fr"] body {
+            font-family: 'Poppins', 'Cairo', sans-serif;
+        }
+
+        /* Subtle Geometric Background Pattern matching Banner */
+        .bg-pattern {
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 168, 181, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(0, 196, 212, 0.12) 0%, transparent 45%);
+        }
+
+        /* Glassmorphism Card Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .glass-dark {
+            background: rgba(10, 37, 64, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 168, 181, 0.3);
+        }
+
+        /* Hover Animations */
+        .service-card {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -6px rgba(10, 37, 64, 0.15);
+            border-color: #00A8B5;
+        }
+
+        .action-btn {
+            transition: all 0.25s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Pulse Ring for WhatsApp */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            70% { transform: scale(1.1); opacity: 0; }
+            100% { transform: scale(1.1); opacity: 0; }
+        }
+        .whatsapp-pulse::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 1rem;
+            border: 2px solid #25D366;
+            animation: pulse-ring 2.2s infinite;
+            pointer-events: none;
+        }
+
+        /* Custom QR Code Container Styling */
+        #qrcode img, #qrcode canvas {
+            margin: 0 auto;
+            border-radius: 0.75rem;
+            padding: 8px;
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-pattern text-slate-800 antialiased selection:bg-brand-cyan selection:text-white">
+
+    <!-- Toast Notification Box (Replaces alert) -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-brand-navy text-white px-5 py-3 rounded-full shadow-2xl border border-brand-cyan flex items-center gap-3 text-sm font-semibold">
+            <i class="fa-solid fa-circle-check text-brand-cyan text-base"></i>
+            <span id="toast-message">تم نسخ الرابط بنجاح!</span>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-xl mx-auto px-4 py-6 sm:py-10">
+
+        <!-- Top Bar: Language Toggle & Quick QR Button -->
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="scrollToQR()" class="glass-dark text-white hover:bg-brand-cyan/20 px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-2 transition cursor-pointer">
+                <i class="fa-solid fa-qrcode text-brand-cyan"></i>
+                <span data-ar="رمز QR للصفحة" data-fr="Code QR">رمز QR للصفحة</span>
+            </button>
+
+            <div class="glass-dark p-1 rounded-full flex items-center">
+                <button id="btn-ar" onclick="setLanguage('ar')" class="px-3.5 py-1 rounded-full text-xs sm:text-sm font-bold bg-brand-cyan text-white transition cursor-pointer">
+                    العربية
+                </button>
+                <button id="btn-fr" onclick="setLanguage('fr')" class="px-3.5 py-1 rounded-full text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition cursor-pointer font-poppins">
+                    Français
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile / Brand Header Card -->
+        <header class="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl text-center relative overflow-hidden mb-6">
+            <!-- Decorative Top Accent Bar -->
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-navy via-brand-cyan to-brand-navy"></div>
+            
+            <!-- Stylized 'M' Brand Emblem matching the user's logo -->
+            <div class="w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-brand-navy to-[#103861] p-3 shadow-lg border-2 border-brand-cyan/40 flex items-center justify-center relative group">
+                <svg viewBox="0 0 120 100" class="w-full h-full drop-shadow">
+                    <defs>
+                        <linearGradient id="mGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#38BDF8"/>
+                            <stop offset="100%" stop-color="#00A8B5"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Stylized M -->
+                    <path d="M18 82 V22 L60 58 L102 22 V82 H85 V47 L60 69 L35 47 V82 Z" fill="#FFFFFF"/>
+                    <!-- Cyan Orbit Swoosh -->
+                    <path d="M10 58 C30 78, 88 74, 110 34" fill="none" stroke="url(#mGrad)" stroke-width="6.5" stroke-linecap="round"/>
+                    <!-- Digital Pixels -->
+                    <rect x="92" y="14" width="7" height="7" rx="1.5" fill="#00C4D4"/>
+                    <rect x="103" y="21" width="6" height="6" rx="1.5" fill="#38BDF8"/>
+                    <rect x="85" y="24" width="5" height="5" rx="1" fill="#00A8B5"/>
+                </svg>
+                <span class="absolute -bottom-2 -right-2 bg-brand-cyan text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow font-poppins">DZ</span>
+            </div>
+
+            <!-- Brand Title -->
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-brand-navy tracking-tight font-poppins">
+                Missoum <span class="text-brand-cyan">E-Services</span> Dz
+            </h1>
+            
+            <!-- Tagline -->
+            <p class="text-sm sm:text-base font-semibold text-slate-600 mt-1.5" data-ar="شريكك الرقمي الموثوق • Votre partenaire digital" data-fr="Votre partenaire digital • شريكك الرقمي الموثوق">
+                شريكك الرقمي الموثوق • Votre partenaire digital
+            </p>
+
+            <!-- Location & Availability Badge -->
+            <div class="inline-flex items-center gap-2 mt-3 px-3.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span data-ar="الجزائر 🇩🇿 | خدمات عن بُعد ومباشرة" data-fr="Algérie 🇩🇿 | Services en ligne & sur place">الجزائر 🇩🇿 | خدمات عن بُعد ومباشرة</span>
+            </div>
+
+            <!-- Primary Action Buttons -->
+            <div class="mt-6 space-y-3">
+                <!-- 1. WhatsApp Direct Button -->
+                <a href="https://wa.me/213795984191?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%20Missoum%20E-Services%20Dz%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1%20%D8%B9%D9%86%20%D8%AE%D8%AF%D9%85%D8%A7%D8%AA%D9%83%D9%85." 
+                   target="_blank" rel="noopener noreferrer"
+                   class="action-btn whatsapp-pulse relative w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-2xl">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </div>
+                        <div class="text-start">
+                            <div class="text-sm sm:text-base leading-tight" data-ar="تواصل مباشر عبر واتساب" data-fr="Contact Direct WhatsApp">تواصل مباشر عبر واتساب</div>
+                            <div class="text-xs text-white/90 font-poppins" dir="ltr">0795 98 41 91</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-sm opacity-90"></i>
+                </a>
+
+                <!-- 2. TikTok & 3. Quick Call Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- TikTok Button -->
+                    <a href="https://www.tiktok.com/@missoum.eservices?_r=1&_t=ZS-9BcK8v91uBZ" 
+                       target="_blank" rel="noopener noreferrer"
+                       class="action-btn bg-[#0F0F0F] hover:bg-black text-white font-bold py-3 px-4 rounded-2xl shadow-md flex items-center justify-between border border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-lg text-[#00f2ea]">
+                                <i class="fa-brands fa-tiktok"></i>
+                            </div>
+                            <div class="text-start">
+                                <div class="text-sm" data-ar="حسابنا على تيك توك" data-fr="Suivez sur TikTok">حسابنا على تيك توك</div>
+                                <div class="text-[11px] text-slate-400 font-poppins" dir="ltr">@missoum.eservices</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-left text-xs text-slate-400 rtl:rotate-0 ltr:rotate-180"></i>
+                    </a>
+
+                    <!-- Quick Call Button -->
+                    <a href="tel:+213795984191" 
+                       class="action-btn bg-brand-navy hover:bg-[#11365c] text-white font-bold py-3 px-4 rounded-2xl shadow-md flex items-center justify-between border border-brand-cyan/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-brand-cyan/20 flex items-center justify-center text-base text-brand-cyan">
+                                <i class="fa-solid fa-phone-volume"></i>
+                            </div>
+                            <div class="text-start">
+                                <div class="text-sm" data-ar="اتصال هاتفي سريع" data-fr="Appel Rapide">اتصال هاتفي سريع</div>
+                                <div class="text-[11px] text-brand-cyan font-poppins" dir="ltr">0795984191</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-phone text-xs text-brand-cyan"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Services Section -->
+        <section class="mb-6">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <span class="w-1.5 h-6 bg-brand-cyan rounded-full inline-block"></span>
+                    <span data-ar="خدماتنا الاحترافية" data-fr="Nos Services Professionnels">خدماتنا الاحترافية</span>
+                </h2>
+                <span class="text-xs text-brand-cyan font-medium" data-ar="اضغط لطلب الخدمة" data-fr="Cliquez pour commander">اضغط لطلب الخدمة</span>
+            </div>
+
+            <div id="services-grid" class="grid grid-cols-1 gap-3">
+                <!-- Services will be rendered dynamically via JS for seamless bilingual switching -->
+            </div>
+        </section>
+
+        <!-- Built-in QR Code Generator & Share Card -->
+        <section id="qr-section" class="glass-card rounded-3xl p-6 shadow-2xl text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-navy text-brand-cyan text-xl mb-3 shadow">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            
+            <h3 class="text-lg sm:text-xl font-extrabold text-brand-navy" data-ar="رمز الاستجابة السريعة (QR Code)" data-fr="Code QR de la Page">
+                رمز الاستجابة السريعة (QR Code)
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto" data-ar="امسح الرمز بكاميرا الهاتف للوصول السريع إلى جميع حساباتنا وخدماتنا، أو قم بتحميله للطباعة." data-fr="Scannez ce code avec votre téléphone pour accéder rapidement à nos réseaux et services, ou téléchargez-le.">
+                امسح الرمز بكاميرا الهاتف للوصول السريع إلى جميع حساباتنا وخدماتنا، أو قم بتحميله للطباعة.
+            </p>
+
+            <!-- QR Code Display Box -->
+            <div class="my-5 flex justify-center">
+                <div class="p-3 bg-white rounded-2xl shadow-md border-2 border-brand-cyan/30 inline-block">
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+
+            <!-- Custom Link Input (Useful when hosted on GitHub Pages / Netlify) -->
+            <div class="max-w-md mx-auto mb-4 text-start">
+                <label for="qr-url-input" class="block text-xs font-bold text-brand-navy mb-1.5" data-ar="رابط الصفحة المراد تحويله إلى QR (يمكنك تعديله بعد الاستضافة):" data-fr="Lien de la page à encoder (modifiable après hébergement) :">
+                    رابط الصفحة المراد تحويله إلى QR (يمكنك تعديله بعد الاستضافة):
+                </label>
+                <div class="flex gap-2" dir="ltr">
+                    <input type="url" id="qr-url-input" 
+                           class="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-100 border border-slate-300 rounded-xl focus:outline-none focus:border-brand-cyan focus:bg-white text-slate-700 font-poppins"
+                           placeholder="https://missoum-eservices.netlify.app">
+                    <button onclick="updateQRCode()" class="bg-brand-navy hover:bg-brand-cyan text-white px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Action Buttons: Download PNG & Copy Link -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
+                <button onclick="downloadQRCode()" class="action-btn bg-brand-cyan hover:bg-[#008e99] text-white font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-solid fa-download"></i>
+                    <span data-ar="تحميل رمز QR (PNG)" data-fr="Télécharger QR Code">تحميل رمز QR (PNG)</span>
+                </button>
+
+                <button onclick="copyPageLink()" class="action-btn bg-slate-100 hover:bg-slate-200 text-brand-navy font-bold py-3 px-4 rounded-xl border border-slate-300 flex items-center justify-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-solid fa-share-nodes text-brand-cyan"></i>
+                    <span data-ar="نسخ رابط الصفحة" data-fr="Partager le lien">نسخ رابط الصفحة</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-slate-300 text-xs space-y-1 pb-4">
+            <p class="font-poppins font-semibold text-white">Missoum E-Services Dz</p>
+            <p data-ar="جميع الحقوق محفوظة © 2026" data-fr="Tous droits réservés © 2026">جميع الحقوق محفوظة © 2026</p>
+        </footer>
+
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Services Data (Bilingual: Arabic & French)
+        const servicesData = [
+            {
+                icon: 'fa-file-signature',
+                arTitle: 'التسجيلات والإجراءات الإدارية',
+                frTitle: 'Inscription & démarches administratives',
+                arDesc: 'مرافقة شاملة في التسجيلات الجامعية، المسابقات، والملفات الإدارية الإلكترونية.',
+                frDesc: 'Accompagnement complet pour inscriptions, concours et dossiers en ligne.'
+            },
+            {
+                icon: 'fa-id-card-clip',
+                arTitle: 'إعداد السير الذاتية الاحترافية',
+                frTitle: 'Création de CV & profils ATS',
+                arDesc: 'تصميم سيرة ذاتية عصرية باللغتين العربية والفرنسية متوافقة مع معايير التوظيف.',
+                frDesc: 'Conception de CV modernes et professionnels adaptés aux recruteurs.'
+            },
+            {
+                icon: 'fa-keyboard',
+                arTitle: 'رقمنة ومعالجة الوثائق',
+                frTitle: 'Saisie & traitement de documents',
+                arDesc: 'كتابة وتنسيق البحوث، المذكرات، والعقود بصيغ Word و PDF بدقة وسرعة.',
+                frDesc: 'Rédaction, mise en page de mémoires, rapports et fichiers Word/PDF.'
+            },
+            {
+                icon: 'fa-file-powerpoint',
+                arTitle: 'عروض تقديمية احترافية',
+                frTitle: 'PowerPoint & présentation',
+                arDesc: 'تصميم شرائح عرض جذابة لمناقشات التخرج والمشاريع المهنية.',
+                frDesc: 'Création de présentations visuelles impactantes pour soutenances et projets.'
+            },
+            {
+                icon: 'fa-laptop-code',
+                arTitle: 'الخدمات المعلوماتية والدعم التقني',
+                frTitle: 'Services informatiques',
+                arDesc: 'حلول برمجية، تثبيت البرامج، وصيانة وتوجيه تقني عن بُعد.',
+                frDesc: 'Assistance technique, installation de logiciels et solutions numériques.'
+            },
+            {
+                icon: 'fa-plane-departure',
+                arTitle: 'السياحة وحجوزات السفر',
+                frTitle: 'Tourisme & Voyage',
+                arDesc: 'حجز تذاكر الطيران والفنادق وتنظيم برامج السفر بأفضل الأسعار.',
+                frDesc: 'Réservation de billets d’avion, hôtels et organisation de voyages.'
+            },
+            {
+                icon: 'fa-video',
+                arTitle: 'الإنتاج السمعي البصري والإشهار',
+                frTitle: 'Production audiovisuelle & Publicité',
+                arDesc: 'مونتاج الفيديو، تصميم الإعلانات الترويجية، وصناعة المحتوى الرقمي.',
+                frDesc: 'Montage vidéo, création publicitaire et contenu digital professionnel.'
+            }
+        ];
+
+        let currentLang = 'ar';
+        const whatsappNumber = '213795984191';
+        let qrCodeInstance = null;
+
+        // Render Services Cards
+        function renderServices() {
+            const grid = document.getElementById('services-grid');
+            grid.innerHTML = '';
+
+            servicesData.forEach((service) => {
+                const title = currentLang === 'ar' ? service.arTitle : service.frTitle;
+                const subtitle = currentLang === 'ar' ? service.frTitle : service.arTitle;
+                const desc = currentLang === 'ar' ? service.arDesc : service.frDesc;
+                const ctaText = currentLang === 'ar' ? 'اطلب الخدمة' : 'Commander';
+
+                // Pre-filled WhatsApp Message
+                const waMessage = currentLang === 'ar'
+                    ? `السلام عليكم Missoum E-Services Dz، أرغب في طلب خدمة: *${service.arTitle}*`
+                    : `Bonjour Missoum E-Services Dz, je souhaite commander le service : *${service.frTitle}*`;
+                
+                const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
+
+                const card = document.createElement('a');
+                card.href = waLink;
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
+                card.className = 'service-card glass-card rounded-2xl p-4 flex items-center justify-between gap-3 border border-transparent group';
+
+                card.innerHTML = `
+                    <div class="flex items-start sm:items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-brand-navy/5 group-hover:bg-brand-navy text-brand-navy group-hover:text-brand-cyan flex items-center justify-center text-xl shrink-0 transition-colors">
+                            <i class="fa-solid ${service.icon}"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-brand-navy text-sm sm:text-base leading-snug group-hover:text-brand-cyan transition-colors">
+                                ${title}
+                            </h3>
+                            <p class="text-[11px] font-medium text-brand-cyan/90 font-poppins">
+                                ${subtitle}
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">
+                                ${desc}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="shrink-0 flex flex-col items-end gap-1">
+                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 group-hover:bg-[#25D366] text-emerald-700 group-hover:text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-colors">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                            <span>${ctaText}</span>
+                        </span>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Switch Language (AR / FR)
+        function setLanguage(lang) {
+            currentLang = lang;
+            const htmlEl = document.documentElement;
+            htmlEl.setAttribute('lang', lang);
+            htmlEl.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+            // Update Toggle Button Styles
+            const btnAr = document.getElementById('btn-ar');
+            const btnFr = document.getElementById('btn-fr');
+
+            if (lang === 'ar') {
+                btnAr.className = 'px-3.5 py-1 rounded-full text-xs sm:text-sm font-bold bg-brand-cyan text-white transition cursor-pointer';
+                btnFr.className = 'px-3.5 py-1 rounded-full text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition cursor-pointer font-poppins';
+            } else {
+                btnFr.className = 'px-3.5 py-1 rounded-full text-xs sm:text-sm font-bold bg-brand-cyan text-white transition cursor-pointer font-poppins';
+                btnAr.className = 'px-3.5 py-1 rounded-full text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition cursor-pointer';
+            }
+
+            // Update all elements with data-ar / data-fr attributes
+            document.querySelectorAll('[data-ar]').forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`);
+            });
+
+            renderServices();
+        }
+
+        // Initialize QR Code
+        function initQRCode() {
+            const urlInput = document.getElementById('qr-url-input');
+            // Use current URL if hosted over HTTP/HTTPS, otherwise fallback to TikTok/Brand link
+            const currentHref = window.location.href.startsWith('http') 
+                ? window.location.href 
+                : 'https://www.tiktok.com/@missoum.eservices';
+            
+            urlInput.value = currentHref;
+            generateQR(currentHref);
+        }
+
+        function generateQR(text) {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: text,
+                width: 190,
+                height: 190,
+                colorDark: '#0A2540',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        function updateQRCode() {
+            const urlInput = document.getElementById('qr-url-input').value.trim();
+            if (!urlInput) {
+                showToast(currentLang === 'ar' ? 'يرجى إدخال رابط صحيح' : 'Veuillez entrer un lien valide');
+                return;
+            }
+            generateQR(urlInput);
+            showToast(currentLang === 'ar' ? 'تم تحديث رمز QR بنجاح!' : 'Code QR mis à jour !');
+        }
+
+        // Download High-Res PNG QR Code
+        function downloadQRCode() {
+            const qrContainer = document.getElementById('qrcode');
+            const canvas = qrContainer.querySelector('canvas');
+            const img = qrContainer.querySelector('img');
+
+            let dataUrl = '';
+            if (canvas) {
+                dataUrl = canvas.toDataURL('image/png');
+            } else if (img && img.src) {
+                dataUrl = img.src;
+            }
+
+            if (dataUrl) {
+                const link = document.createElement('a');
+                link.download = 'Missoum-EServices-Dz-QR.png';
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast(currentLang === 'ar' ? 'جاري تحميل رمز QR...' : 'Téléchargement du QR Code...');
+            }
+        }
+
+        // Copy Link to Clipboard (iFrame safe)
+        function copyPageLink() {
+            const urlInput = document.getElementById('qr-url-input');
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast(currentLang === 'ar' ? 'تم نسخ الرابط بنجاح!' : 'Lien copié dans le presse-papiers !');
+            } catch (err) {
+                showToast(currentLang === 'ar' ? 'تعذر نسخ الرابط' : 'Erreur lors de la copie');
+            }
+            window.getSelection().removeAllRanges();
+        }
+
+        // Smooth Scroll to QR Section
+        function scrollToQR() {
+            document.getElementById('qr-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Custom Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Run on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderServices();
+            initQRCode();
+        });
+    </script>
+</body>
+</html>
